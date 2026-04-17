@@ -41,7 +41,7 @@ Os endpoints paginados da API respondem com `items` e `meta`, mas o SDK continua
 ## Instalação
 
 ```bash
-composer require sdk-php-ingestao-vetorial
+composer require ingestao-vetorial/sdk-php
 ```
 
 ---
