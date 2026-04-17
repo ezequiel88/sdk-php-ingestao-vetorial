@@ -44,6 +44,17 @@ Os endpoints paginados da API respondem com `items` e `meta`, mas o SDK continua
 composer require ingestao-vetorial/sdk-php
 ```
 
+## Atualização no Packagist
+
+O repositório notifica o Packagist automaticamente a cada push para `main` e também em tags `v*.*.*`, usando o workflow `Sync Packagist metadata`.
+
+Para isso funcionar no GitHub Actions, configure o environment `packagist` com estes secrets:
+
+- `PACKAGIST_USERNAME`
+- `PACKAGIST_API_TOKEN`
+
+No Packagist, o pacote deve estar cadastrado apontando para `https://github.com/ezequiel88/sdk-php-ingestao-vetorial`.
+
 ---
 
 ## Início rápido
