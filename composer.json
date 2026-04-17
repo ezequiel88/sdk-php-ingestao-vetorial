@@ -1,5 +1,5 @@
 {
-  "name": "ingestao-vetorial/sdk-php",
+  "name": "sdk-php-ingestao-vetorial",
   "description": "Standalone PHP 8.2 SDK for the Ingestão Vetorial API — Guzzle-based, Laravel-compatible.",
   "type": "library",
   "homepage": "https://github.com/ezequiel88/sdk-php-ingestao-vetorial",
