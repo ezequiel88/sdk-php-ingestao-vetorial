@@ -1,0 +1,86 @@
+name: PHP SDK Release Orchestrator
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: php-sdk-release-main
+  cancel-in-progress: false
+
+jobs:
+  orchestrate:
+    if: ${{ !contains(github.event.head_commit.message, '[skip php-release]') }}
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.2"
+          coverage: none
+
+      - name: Build release plan
+        id: plan
+        run: python .github/scripts/release.py plan --output-json php-release-plan.json --github-output
+
+      - name: Stop when there are no pending releases
+        if: steps.plan.outputs.has_releases != 'true'
+        run: echo "No pending changesets. Skipping PHP release orchestration."
+
+      - name: Install dependencies
+        if: steps.plan.outputs.has_releases == 'true'
+        run: composer install --no-interaction --prefer-dist
+
+      - name: Run PHPUnit
+        if: steps.plan.outputs.has_releases == 'true'
+        run: ./vendor/bin/phpunit --testdox
+
+      - name: Run PHPStan
+        if: steps.plan.outputs.has_releases == 'true'
+        run: ./vendor/bin/phpstan analyse --memory-limit=256M
+
+      - name: Apply release plan
+        if: steps.plan.outputs.has_releases == 'true'
+        run: python .github/scripts/release.py apply --plan-file php-release-plan.json
+
+      - name: Configure git author
+        if: steps.plan.outputs.has_releases == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Commit consumed changesets
+        if: steps.plan.outputs.has_releases == 'true'
+        run: |
+          git add .changeset
+          git commit -m "chore(release): cut PHP SDK release [skip php-release]"
+
+      - name: Push release commit
+        if: steps.plan.outputs.has_releases == 'true'
+        run: git push origin HEAD:${GITHUB_REF_NAME}
+
+      - name: Create and push release tags
+        if: steps.plan.outputs.has_releases == 'true'
+        shell: bash
+        run: |
+          while IFS= read -r tag; do
+            if git rev-parse "$tag" >/dev/null 2>&1; then
+              echo "Tag $tag already exists; skipping"
+              continue
+            fi
+            git tag "$tag"
+            git push origin "$tag"
+          done < <(python .github/scripts/release.py print-tags --plan-file php-release-plan.json)

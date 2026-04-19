@@ -7,12 +7,36 @@ on:
     branches: ["**"]
 
 jobs:
+  changeset-validation:
+    name: Changeset validation
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Fetch base branch
+        run: git fetch origin "${{ github.base_ref }}" --depth=1
+
+      - name: Ensure PHP SDK changes include a changeset
+        run: python .github/scripts/release.py require-changeset --diff-base "origin/${{ github.base_ref }}"
+
   test:
     name: PHPUnit and PHPStan
     runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
 
       - uses: shivammathur/setup-php@v2
         with:

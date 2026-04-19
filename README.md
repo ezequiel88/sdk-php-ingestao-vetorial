@@ -14,6 +14,7 @@ Os endpoints paginados da API respondem com `items` e `meta`, mas o SDK continua
 
 - [Requisitos](#requisitos)
 - [Instalação](#instalação)
+- [Releases automáticos e tags](#releases-automáticos-e-tags)
 - [Início rápido](#início-rápido)
 - [Integração com Laravel](#integração-com-laravel)
 - [Tratamento de erros](#tratamento-de-erros)
@@ -54,6 +55,29 @@ Para isso funcionar no GitHub Actions, configure o environment `packagist` com e
 - `PACKAGIST_API_TOKEN`
 
 No Packagist, o pacote deve estar cadastrado apontando para `https://github.com/ezequiel88/sdk-php-ingestao-vetorial`.
+
+## Releases automáticos e tags
+
+As tags de release do SDK PHP agora devem ser geradas automaticamente pelo workflow `PHP SDK Release Orchestrator`.
+
+Como este repositório foi extraído do monorepo original, a primeira tag automática continua a linhagem anterior a partir da baseline `0.1.1`.
+
+Como funciona:
+
+- Todo PR com mudança relevante em `src/`, `tests/`, `composer.json`, `phpunit.xml` ou `phpstan.neon` deve incluir um arquivo em `.changeset/`.
+- O changeset usa a chave `php` com um bump semver: `patch`, `minor` ou `major`.
+- Ao entrar na `main`, o workflow valida o SDK, consome os changesets pendentes, cria um commit automático e publica a tag `vX.Y.Z`.
+- A tag `vX.Y.Z` dispara o workflow de release do Packagist.
+
+Exemplo de changeset:
+
+```md
+---
+php: patch
+---
+
+Corrige a serializacao de payload no upload e ajusta a documentacao.
+```
 
 ---
 
